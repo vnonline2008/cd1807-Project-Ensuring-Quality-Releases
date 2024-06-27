@@ -1,0 +1,36 @@
+2024-06-26 01:17:47 - [INFO] - Starting automation test with selenium...
+2024-06-26 01:17:47 - [INFO] - Starting the browser...
+2024-06-26 01:17:48 - [INFO] - Browser started successfully. Navigating to the demo page to login.
+2024-06-26 01:17:52 - [INFO] - User: standard_user login successfully
+2024-06-26 01:17:52 - [INFO] - Verify user navigate to home page successfully
+2024-06-26 01:17:52 - [INFO] - Add Sauce Labs Backpack to cart successfully
+2024-06-26 01:17:52 - [INFO] - Add Sauce Labs Bike Light to cart successfully
+2024-06-26 01:17:52 - [INFO] - Add Sauce Labs Bolt T-Shirt to cart successfully
+2024-06-26 01:17:52 - [INFO] - Add Sauce Labs Fleece Jacket to cart successfully
+2024-06-26 01:17:52 - [INFO] - Add Sauce Labs Onesie to cart successfully
+2024-06-26 01:17:52 - [INFO] - Add Test.allTheThings() T-Shirt (Red) to cart successfully
+2024-06-26 01:17:52 - [INFO] - Add all item into cart successfully
+2024-06-26 01:17:52 - [INFO] - Remove Sauce Labs Backpack from cart successfully
+2024-06-26 01:17:52 - [INFO] - Remove Sauce Labs Bike Light from cart successfully
+2024-06-26 01:17:52 - [INFO] - Remove Sauce Labs Bolt T-Shirt from cart successfully
+2024-06-26 01:17:52 - [INFO] - Remove Sauce Labs Fleece Jacket from cart successfully
+2024-06-26 01:17:52 - [INFO] - Remove Sauce Labs Onesie from cart successfully
+2024-06-26 01:17:52 - [INFO] - Remove Test.allTheThings() T-Shirt (Red) from cart successfully
+2024-06-26 01:17:57 - [INFO] - DOM Element is removed from UI
+2024-06-26 01:17:57 - [INFO] - Remove all item from cart successfully
+2024-06-26 01:17:58 - [INFO] - Add Sauce Labs Backpack to cart successfully
+2024-06-26 01:17:58 - [INFO] - Add Sauce Labs Bike Light to cart successfully
+2024-06-26 01:17:58 - [INFO] - Add Sauce Labs Bolt T-Shirt to cart successfully
+2024-06-26 01:17:58 - [INFO] - Add Sauce Labs Fleece Jacket to cart successfully
+2024-06-26 01:17:58 - [INFO] - Add Sauce Labs Onesie to cart successfully
+2024-06-26 01:17:58 - [INFO] - Add Test.allTheThings() T-Shirt (Red) to cart successfully
+2024-06-26 01:17:58 - [INFO] - Add all item into cart successfully
+2024-06-26 01:17:58 - [INFO] - Navigate to cart page successfully
+2024-06-26 01:17:58 - [INFO] - Navigate to checkout page successfully
+2024-06-26 01:17:58 - [INFO] - Fill firstname successfuly
+2024-06-26 01:17:58 - [INFO] - Fill lastname successfuly
+2024-06-26 01:17:58 - [INFO] - Fill postal-code successfuly
+2024-06-26 01:17:58 - [INFO] - Navigate to final checkout page successfully
+2024-06-26 01:17:58 - [INFO] - Finish checkout successfully, Navigate to Complete page successfully
+2024-06-26 01:17:58 - [INFO] - Go back to home page successfully
+2024-06-26 01:17:58 - [INFO] - End automation test with selenium...
