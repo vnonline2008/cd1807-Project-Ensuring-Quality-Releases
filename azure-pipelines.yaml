@@ -17,14 +17,15 @@ variables:
   # Project root folder. Point to the folder containing manage.py file.
   projectRoot: $(System.DefaultWorkingDirectory)
   # Environment name
-  environmentName: 'test'
-  group: 'azure-variables'
+  environmentName: 'azure-tungtt44-AppService'
 
 stages:
 #--------------------------------------------#  
 # BUILD STAGE
 #--------------------------------------------#    
 - stage: Build
+  variables:
+    - group: azure-variables
   jobs:
   - job: BuildInfrastructure
     steps:
@@ -92,10 +93,17 @@ stages:
     # - task: TerraformTaskV3@3
     #   displayName: Terraform destroy
     #   inputs:
+    #     script: |
+    #       echo "check variable $(SUBSCRIPTION_ID)"
     #     provider: 'azurerm'
     #     command: 'destroy'
     #     workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/environments/test'
     #     environmentServiceNameAzureRM: '$(azureServiceConnectionId)'
+    #   env:
+    #     TF_VAR_subscription_id: $(SUBSCRIPTION_ID)
+    #     TF_VAR_client_id: $(CLIENT_ID)
+    #     TF_VAR_client_secret: $(CLIENT_SECRET)
+    #     TF_VAR_tenant_id: $(TENANT_ID)
 
 #--------------------------------------------#    
     # Postman - Install Newman    
@@ -106,8 +114,8 @@ stages:
         script: |
           node -v
           npm -v
-          java -v
-          javac -v
+          java --version
+          javac --version
           python3 --version
           zip -v
           sudo npm install -g newman
@@ -155,17 +163,17 @@ stages:
 
 #     #--------------------------------------------#    
 #     # FakeRestAPI - Archive
-#     # ToDo: Complete the ArchiveFiles@2 task and publish step 
-#     - task: ArchiveFiles@2
-#       displayName: 'Archive FakeRestAPI'
-#       inputs:
-#         rootFolderOrFile: 
-#         includeRootFolder: false
-#         archiveType: 'zip'
-#         archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)-fakerestapi.zip'
-#     - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId)-fakerestapi.zip
-#       displayName: 'Upload Package'
-#       artifact: drop-fakerestapi
+    # ToDo: Complete the ArchiveFiles@2 task and publish step 
+    - task: ArchiveFiles@2
+      displayName: 'Archive FakeRestAPI'
+      inputs:
+        rootFolderOrFile: '$(System.DefaultWorkingDirectory)/automatedtesting/jmeter/fakerestapi'
+        includeRootFolder: false
+        archiveType: 'zip'
+        archiveFile: '$(Build.BuildId)-fakerestapi.zip'
+    - publish: $(Build.BuildId)-fakerestapi.zip
+      displayName: 'Upload Package'
+      artifact: drop-fakerestapi
 
 #     #--------------------------------------------#  
 #     # JMeter (Performance) Test Suite - Archive
@@ -185,26 +193,25 @@ stages:
 # #--------------------------------------------#  
 # # DEPLOYMENT STAGE
 # #--------------------------------------------#    
-# - stage: Deploy
-#   jobs:
+- stage: Deploy
+  jobs:
 #   #--------------------------------------------#  
 #   # Deploy FakeRestAPI Web App
 #   # ToDo: Provide <environment name> you created in your DevOps project
-#   - deployment: FakeRestAPI
-#     pool:
-#       vmImage: 'Ubuntu-18.04'      
-#     environment: <environment name>   # ToDo
-#     strategy:
-#       runOnce:
-#         deploy:
-#           steps:
-#           - task: AzureWebApp@1
-#             displayName: 'Deploy Azure Web App'
-#             inputs:
-#               azureSubscription: ''     # ToDo
-#               appName: ''               # ToDo
-#               appType: webApp
-#               package: $(Pipeline.Workspace)/<artifact>/<archiveFile>       # ToDo: Use the published zip artifact. 
+  - deployment: FakeRestAPI
+    pool: tungtt44Agent
+    environment: $(environmentName)  # ToDo
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            displayName: 'Deploy Azure Web App'
+            inputs:
+              azureSubscription: $(azureServiceConnectionId)     # ToDo
+              appName: 'azure-tungtt44-AppService'               # ToDo
+              appType: webApp
+              package: $(Pipeline.Workspace)/drop-fakerestapi/$(Build.BuildId)-fakerestapi.zip       # ToDo: Use the published zip artifact. 
 #           #--------------------------------------------#    
 #           # Run JMeter test suite against the App Service
 #           - task: CmdLine@2

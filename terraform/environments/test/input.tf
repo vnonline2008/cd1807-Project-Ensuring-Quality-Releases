@@ -1,7 +1,3 @@
-import {
-  to = azurerm_resource_group.test
-  id = "/subscriptions/${var.subscription_id}/resourceGroups/${var.resource_group}"
-}
 # Azure GUIDS
 variable "subscription_id" {}
 variable "client_id" {}
