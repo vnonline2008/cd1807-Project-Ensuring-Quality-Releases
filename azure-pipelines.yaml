@@ -108,20 +108,17 @@ stages:
             displayName: "Publish Selenium"
             artifact: drop-uitests
 
-  #     #--------------------------------------------#
-  #     # JMeter (Performance) Test Suite - Archive
-  #     # ToDo: Complete the ArchiveFiles@2 task and publish step
-  #     - task: ArchiveFiles@2
-  #       displayName: 'Archive PerformanceTestSuite'
-  #       inputs:
-  #         rootFolderOrFile:
-  #         includeRootFolder: false
-  #         archiveType: 'zip'
-  #         archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)-perftests.zip'
-  #     # JMeter Test Suite - Publish
-  #     - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId)-perftests.zip
-  #       displayName: 'Upload Package'
-  #       artifact: drop-perftests
+          # JMeter (Performance) Test Suite - Archive
+          - task: ArchiveFiles@2
+            displayName: 'Archive PerformanceTestSuite'
+            inputs:
+              rootFolderOrFile: "$(System.DefaultWorkingDirectory)/automatedtesting/jmeter"
+              includeRootFolder: false
+              archiveType: 'zip'
+              archiveFile: '$(Build.BuildId)-perftests.zip'
+          - publish: $(Build.BuildId)-perftests.zip
+            displayName: 'Publish JMeter Test'
+            artifact: drop-perftests
 
   #--------------------------------------------#
   # DEPLOYMENT STAGE
@@ -143,17 +140,6 @@ stages:
                     appName: "tungtt44-fakerestapi-appservice"
                     appType: webApp
                     package: $(Pipeline.Workspace)/drop-fakerestapi/$(Build.BuildId)-fakerestapi.zip
-
-              # Run JMeter test suite against the App Service
-              # - task: CmdLine@2
-              #   inputs:
-              #     script: |
-              #       wget "https://apache.mirrors.lucidnetworks.net//jmeter/binaries/apache-jmeter-5.2.1.tgz"
-              #       tar -xf apache-jmeter-5.2.1.tgz
-              #       unzip -o $(Build.BuildId)-perftests.zip
-              #       ./apache-jmeter-5.2.1/bin/jmeter -n -t PerformanceTestSuite.jmx -j jmeter.log -f
-              #       cat jmeter.log
-              #     workingDirectory: $(Pipeline.Workspace)/<artifact>            # ToDo: Use the artifact name from the task above
 
       # Selenium | Functional UI Tests
       - deployment: VMDeploy
@@ -256,11 +242,17 @@ stages:
       - job: Test_JMeter
         displayName: "JMeter Performance Test Suite"
         steps:
+          - download: current
+            artifact: drop-perftests
           # Install JRE to run JMeter
-          - task: Bash@3
+          - task: CmdLine@2
             inputs:
               script: |
-                sudo apt-get update
-                sudo apt install -y openjdk-11-jdk-headless
                 java --version
-            displayName: "Install JRE 11"
+                wget "https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz"
+                tar zxvf apache-jmeter-5.6.3.tgz
+                unzip -o $(Build.BuildId)-perftests.zip
+                echo $(System.DefaultWorkingDirectory)
+                ls
+              workingDirectory: $(System.DefaultWorkingDirectory)
+            displayName: "Install JMeter"
