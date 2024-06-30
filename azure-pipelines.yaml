@@ -6,16 +6,10 @@ name: Azure Pipelines
 trigger:
 - main
 
-# ToDo: Replace the agent pool name, if you are using Udacity Cloud lab. 
-# Otherwise, comment out the line below. 
 pool: tungtt44Agent
 
 variables:
-  python.version: '3.7.6'
-  # ToDo: Replace the service connection name as used in the DevOps project settings
   azureServiceConnectionId: 'udacity-project3'
-  # Project root folder. Point to the folder containing manage.py file.
-  projectRoot: $(System.DefaultWorkingDirectory)
   # Environment name
   environmentName: 'azure-tungtt44-AppService'
 
@@ -23,22 +17,17 @@ stages:
 #--------------------------------------------#  
 # BUILD STAGE
 #--------------------------------------------#    
-- stage: Build
+- stage: Build_Infras
   variables:
     - group: azure-variables
   jobs:
   - job: BuildInfrastructure
     steps:
-    #--------------------------------------------#  
-    # Use Terraform to create the Infrastructure      
-    # Install Terraform on the pipeline agent 
     - task: ms-devlabs.custom-terraform-tasks.custom-terraform-installer-task.TerraformInstaller@0
       displayName: 'Terrafom installation'
       inputs:
         terraformVersion: '1.2.9'
-    
-    # Run Terraform Init on the pipeline agent 
-    # ToDo: Replace the resource group name, storage account name, and container name below
+
     - task: ms-devlabs.custom-terraform-tasks.custom-terraform-release-task.TerraformTaskV3@3
       displayName: 'Terrafom init'
       inputs:
@@ -87,8 +76,8 @@ stages:
         TF_VAR_client_id: $(CLIENT_ID)
         TF_VAR_client_secret: $(CLIENT_SECRET)
         TF_VAR_tenant_id: $(TENANT_ID)
+        TF_VAR_public_key: $(PUBLIC_KEY)
 
-    # ToDo: Change the workingDirectory path, as applicable to you
     # Destroy the resources in Azure by running a separate pipeline. 
     # - task: TerraformTaskV3@3
     #   displayName: Terraform destroy
@@ -104,22 +93,45 @@ stages:
     #     TF_VAR_client_id: $(CLIENT_ID)
     #     TF_VAR_client_secret: $(CLIENT_SECRET)
     #     TF_VAR_tenant_id: $(TENANT_ID)
+    #     TF_VAR_public_key: $(PUBLIC_KEY)
 
-#--------------------------------------------#    
-    # Postman - Install Newman    
-    # ToDo: Update the command and verify the working directory
-    - task: CmdLine@2
-      displayName: Install Newman
-      inputs:
-        script: |
-          node -v
-          npm -v
-          java --version
-          javac --version
-          python3 --version
-          zip -v
-          sudo npm install -g newman
-        workingDirectory: $(System.DefaultWorkingDirectory)
+- stage: Build_Project
+  jobs:
+    - job: Build_Packages
+      steps:
+        - task: CmdLine@2
+          displayName: Install Newman
+          inputs:
+            script: |
+              node -v
+              npm -v
+              sudo npm install -g newman
+            workingDirectory: $(System.DefaultWorkingDirectory)
+
+        # FakeRestAPI - Archive
+        - task: ArchiveFiles@2
+          displayName: 'Archive FakeRestAPI'
+          inputs:
+            rootFolderOrFile: '$(System.DefaultWorkingDirectory)/automatedtesting/jmeter/fakerestapi'
+            includeRootFolder: false
+            archiveType: 'zip'
+            archiveFile: '$(Build.BuildId)-fakerestapi.zip'
+        - publish: $(Build.BuildId)-fakerestapi.zip
+          displayName: 'Publish artifact FakeRestAPI'
+          artifact: drop-fakerestapi
+
+        # Selenium (UI) Test Suite - Archive the package  
+        - task: ArchiveFiles@2
+          displayName: 'Archive UI Tests'
+          inputs:
+            rootFolderOrFile: '$(System.DefaultWorkingDirectory)/automatedtesting/selenium'
+            includeRootFolder: false
+            archiveType: 'zip'
+            archiveFile: '$(Build.BuildId)-uitests.zip'
+        - publish: $(Build.BuildId)-uitests.zip
+          displayName: 'Publish Selenium'
+          artifact: drop-uitests
+
     # Postman Data Validation Test Suite    
     # ToDo: Verify the working directory
 #     - task: CmdLine@2
@@ -146,35 +158,6 @@ stages:
 #         mergeTestResults: true
 #         testRunTitle:       # ToDo
 
-#     #--------------------------------------------#
-#     # Selenium (UI) Test Suite - Archive the package  
-#     # "ArchiveFiles@2" picks up the web package and archives it.
-#     - task: ArchiveFiles@2
-#       displayName: 'Archive UI Tests'
-#       inputs:
-#         rootFolderOrFile: '$(System.DefaultWorkingDirectory)/automatedtesting/selenium'
-#         includeRootFolder: false
-#         archiveType: 'zip'
-#         archiveFile: '$(Build.ArtifactStagingDirectory)/$(Build.BuildId)-uitests.zip'
-#     # Selenium Test Suite - Publish the package  
-#     - publish: $(Build.ArtifactStagingDirectory)/$(Build.BuildId)-uitests.zip   # Same as the archiveFile artifact above. 
-#       displayName: 'Upload Package'
-#       artifact: drop-uitests
-
-#     #--------------------------------------------#    
-#     # FakeRestAPI - Archive
-    # ToDo: Complete the ArchiveFiles@2 task and publish step 
-    - task: ArchiveFiles@2
-      displayName: 'Archive FakeRestAPI'
-      inputs:
-        rootFolderOrFile: '$(System.DefaultWorkingDirectory)/automatedtesting/jmeter/fakerestapi'
-        includeRootFolder: false
-        archiveType: 'zip'
-        archiveFile: '$(Build.BuildId)-fakerestapi.zip'
-    - publish: $(Build.BuildId)-fakerestapi.zip
-      displayName: 'Upload Package'
-      artifact: drop-fakerestapi
-
 #     #--------------------------------------------#  
 #     # JMeter (Performance) Test Suite - Archive
 #     # ToDo: Complete the ArchiveFiles@2 task and publish step 
@@ -190,17 +173,15 @@ stages:
 #       displayName: 'Upload Package'
 #       artifact: drop-perftests
 
-# #--------------------------------------------#  
-# # DEPLOYMENT STAGE
-# #--------------------------------------------#    
+#--------------------------------------------#
+# DEPLOYMENT STAGE
+#--------------------------------------------#
 - stage: Deploy
   jobs:
-#   #--------------------------------------------#  
-#   # Deploy FakeRestAPI Web App
-#   # ToDo: Provide <environment name> you created in your DevOps project
+    # Deploy FakeRestAPI Web App
   - deployment: FakeRestAPI
     pool: tungtt44Agent
-    environment: $(environmentName)  # ToDo
+    environment: $(environmentName)
     strategy:
       runOnce:
         deploy:
@@ -208,11 +189,11 @@ stages:
           - task: AzureWebApp@1
             displayName: 'Deploy Azure Web App'
             inputs:
-              azureSubscription: $(azureServiceConnectionId)     # ToDo
-              appName: 'azure-tungtt44-AppService'               # ToDo
+              azureSubscription: $(azureServiceConnectionId)
+              appName: 'tungtt44-fakerestapi-appservice'
               appType: webApp
-              package: $(Pipeline.Workspace)/drop-fakerestapi/$(Build.BuildId)-fakerestapi.zip       # ToDo: Use the published zip artifact. 
-#           #--------------------------------------------#    
+              package: $(Pipeline.Workspace)/drop-fakerestapi/$(Build.BuildId)-fakerestapi.zip
+#           #--------------------------------------------#
 #           # Run JMeter test suite against the App Service
 #           - task: CmdLine@2
 #             inputs:
@@ -223,50 +204,58 @@ stages:
 #                 ./apache-jmeter-5.2.1/bin/jmeter -n -t PerformanceTestSuite.jmx -j jmeter.log -f
 #                 cat jmeter.log                                                                           # ToDo: Write your commands
 #               workingDirectory: $(Pipeline.Workspace)/<artifact>            # ToDo: Use the artifact name from the task above
-              
-#   #--------------------------------------------#  
+
 #   # Selenium | Functional UI Tests
-#   # ToDo: 
-#   - deployment: VMDeploy
-#     displayName: Selenium Tests
-#     environment:
-#       name:         # ToDo: Change/provide a name
-#       resourceType: VirtualMachine
-#       tags: selenium
-#     strategy:
-#       runOnce:
-#         deploy:
-#           steps:
-#           - download: current
-#             artifact: drop-ui-tests     # ToDo: Change/provide a name
-            
-#           - task: Bash@3
-#             inputs:
-#               targetType: 'inline'
-#               script: |           
-#                 #! /bin/bash
-                
-#                 sudo apt-get upgrade -y
-#                 sudo apt-get install python3-pip -y
-#                 sudo apt-get install unzip -y
-#                 sudo apt-get install -y chromium-browser
-#                 pip3 install selenium
-#                 cd ~/
-#                 DIR=/home/testuser/app
-#                 if [ ! -d "$DIR" ]; then
-#                     mkdir app
-#                 fi
-#                 mv /home/testuser/azagent/_work/1/drop-uitests/$(Build.BuildId)-uitests.zip app
-#                 cd app
-#                 unzip -o $(Build.BuildId)-uitests.zip
-#                 FILE=/home/testuser/app/chromedriver_linux64.zip
-#                 if [ ! -f "$FILE" ]; then
-#                     LATEST=$(wget -q -O - http://chromedriver.storage.googleapis.com/LATEST_RELEASE)
-#                     wget http://chromedriver.storage.googleapis.com/$LATEST/chromedriver_linux64.zip
-#                     unzip -o chromedriver_linux64.zip
-#                     sudo ln -s $PWD/chromedriver /usr/local/bin/chromedriver
-#                 fi
-#                 export PATH=$PATH:/home/testuser/app
-#                 echo "Starting Selenium Tests"
-#                 python3 add_remove_from_cart.py >> selenium.log
-#                 echo "Completed Selenium Tests. Check selenium.log for results."
+  - deployment: VMDeploy
+    displayName: Selenium Tests
+    environment:
+      name: $(environmentName)
+      resourceType: VirtualMachine
+      tags: selenium
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - download: current
+            artifact: drop-uitests
+          - task: Bash@3
+            inputs:
+              targetType: 'inline'
+              script: |
+                #! /bin/bash
+                sudo apt-get update
+                sudo apt-get upgrade -y
+                sudo apt-get install python3-pip -y
+                sudo pip3 install --upgrade pip
+                sudo apt-get install unzip -y
+                sudo apt-get install chromium-browser -y
+                sudo apt-get install chromium-chromedriver -y
+                sudo ln -s /usr/lib/chromium-browser/chromedriver /usr/local/bin/chromedriver
+                pip3 --version
+                python3 --version
+                pip3 install selenium
+                chromium-browser --version
+                chromedriver --version
+                pwd
+                cd ~/
+                DIR=/home/udacitytungtt44/app
+                if [ ! -d "$DIR" ]; then
+                    mkdir app
+                fi
+                mv /home/udacitytungtt44/azagent/_work/1/drop-uitests/$(Build.BuildId)-uitests.zip /home/udacitytungtt44/app
+                cd /home/udacitytungtt44/app
+                unzip -o $(Build.BuildId)-uitests.zip
+                export PATH=$PATH:/home/udacitytungtt44/app
+                echo "Starting Selenium Tests"
+                python3 login.py
+                DIR_LOG=$(System.DefaultWorkingDirectory)/automatedtesting/selenium
+                if [ ! -d "$DIR_LOG" ]; then
+                    mkdir -p $DIR_LOG
+                fi
+                mv /home/udacitytungtt44/app/automation-test.log $DIR_LOG
+                rm -rf $(Build.BuildId)-uitests.zip
+                echo "Completed Selenium Tests. Check selenium.log for results."
+            displayName: "Install and Run Selenium"
+          - publish: '$(System.DefaultWorkingDirectory)/automatedtesting/selenium/automation-test.log'
+            displayName: 'Publish Selenium Log'
+            artifact: drop-automation-log

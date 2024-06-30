@@ -12,8 +12,9 @@ def login (user, password) -> WebDriver:
     logger.info('Starting the browser...')
     # --uncomment when running in Azure DevOps.
     options = ChromeOptions()
-    # options.add_argument("--headless")
-    # options.add_argument("--no-sandbox")
+    options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
     driver = webdriver.Chrome(options=options)
 
     # setup 10 seconds to wait for element is loaded
@@ -103,16 +104,16 @@ def full_e2e_test():
     logger.info("Go back to home page successfully")
 
 if __name__ == "__main__":
-    logging.basicConfig(
-        filename="automation-test.log",
-        filemode="w",
-        encoding="utf-8",
-        level=logging.INFO,
-        format='%(asctime)s - [%(levelname)s] - %(message)s',
+    file_handler = logging.FileHandler('automation-test.log', encoding='utf-8')
+    formatter = logging.Formatter(
+        fmt='%(asctime)s - [%(levelname)s] - %(message)s',
         datefmt='%Y-%m-%d %H:%M:%S'
     )
+    file_handler.setFormatter(formatter)
 
     logger = logging.getLogger(__name__)
+    logger.setLevel(logging.INFO)
+    logger.addHandler(file_handler)
     logger.info("Starting automation test with selenium...")
     driver = login('standard_user', 'secret_sauce')
     add_items_to_cart()

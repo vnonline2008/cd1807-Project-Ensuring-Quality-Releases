@@ -15,3 +15,4 @@ variable "address_prefix_test" {}
 variable "address_space" {}
 
 variable "admin_username" {}
+variable "public_key" {}

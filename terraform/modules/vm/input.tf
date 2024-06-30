@@ -19,3 +19,6 @@ variable "subnet_ip" {
 variable "admin_username" {
 
 }
+variable "public_key" {
+
+}
