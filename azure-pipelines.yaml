@@ -110,14 +110,14 @@ stages:
 
           # JMeter (Performance) Test Suite - Archive
           - task: ArchiveFiles@2
-            displayName: 'Archive PerformanceTestSuite'
+            displayName: "Archive PerformanceTestSuite"
             inputs:
               rootFolderOrFile: "$(System.DefaultWorkingDirectory)/automatedtesting/jmeter"
               includeRootFolder: false
-              archiveType: 'zip'
-              archiveFile: '$(Build.BuildId)-perftests.zip'
+              archiveType: "zip"
+              archiveFile: "$(Build.BuildId)-perftests.zip"
           - publish: $(Build.BuildId)-perftests.zip
-            displayName: 'Publish JMeter Test'
+            displayName: "Publish JMeter Test"
             artifact: drop-perftests
 
   #--------------------------------------------#
@@ -158,7 +158,6 @@ stages:
                   inputs:
                     targetType: "inline"
                     script: |
-                      #! /bin/bash
                       sudo apt-get upgrade -y
                       sudo apt-get install python3-pip -y
                       sudo pip3 install --upgrade pip
@@ -205,10 +204,7 @@ stages:
           - task: CmdLine@2
             inputs:
               script: |
-                node -v
-                npm -v
                 sudo npm install -g newman
-                newman --version
               workingDirectory: $(System.DefaultWorkingDirectory)
             displayName: Install Newman
 
@@ -243,21 +239,64 @@ stages:
         steps:
           - download: current
             artifact: drop-perftests
-          # Install JRE to run JMeter
+
           - task: CmdLine@2
             inputs:
               script: |
                 java --version
                 wget "https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz"
                 tar zxvf apache-jmeter-5.6.3.tgz
-                mv $(Pipeline.Workspace)/drop-perftests/$(Build.BuildId)-perftests.zip $(System.DefaultWorkingDirectory)
+                DEST_DIR=$(System.DefaultWorkingDirectory)/jmeter
+                if [ ! -d "$DEST_DIR" ]; then
+                  mkdir -p $DEST_DIR
+                fi
+                mv $(Pipeline.Workspace)/drop-perftests/$(Build.BuildId)-perftests.zip $(System.DefaultWorkingDirectory)/jmeter
+                cd $(System.DefaultWorkingDirectory)/jmeter
                 unzip -o $(Build.BuildId)-perftests.zip
-                ls
+                rm -rf $(Build.BuildId)-perftests.zip
               workingDirectory: $(System.DefaultWorkingDirectory)
             displayName: "Install JMeter"
+
           - task: CmdLine@2
             inputs:
               script: |
-                apache-jmeter-5.6.3/bin/jmeter --version
-                ls
-            displayName: "Check JMeter version"
+                DEST_DIR=$(System.DefaultWorkingDirectory)/jmeter
+                apache-jmeter-5.6.3/bin/jmeter -n -t $DEST_DIR/Endurance-test-suite.jmx -l "DEST_DIR"/endurance-test-result.csv -e -f -o $DEST_DIR/endurance-test-report -j $DEST_DIR/endurance-test.log
+                cat $DEST_DIR/endurance-test.log
+            displayName: "Run Endurance Test"
+
+          - task: CmdLine@2
+            inputs:
+              script: |
+                DEST_DIR=$(System.DefaultWorkingDirectory)/jmeter
+                apache-jmeter-5.6.3/bin/jmeter -n -t $DEST_DIR/Stress-test-suite.jmx -l "DEST_DIR"/stress-test-result.csv -e -f -o $DEST_DIR/stress-test-report -j $DEST_DIR/stress-test.log
+                cat $DEST_DIR/stress-test.log
+            displayName: "Run Stress Test"
+
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: "$(System.DefaultWorkingDirectory)/jmeter/endurance-test-report"
+              includeRootFolder: false
+              archiveType: "zip"
+              archiveFile: "$(System.DefaultWorkingDirectory)/jmeter/endurance-test-report.zip"
+            displayName: "Archive Endurance Test Report"
+
+          - task: ArchiveFiles@2
+            inputs:
+              rootFolderOrFile: "$(System.DefaultWorkingDirectory)/jmeter/stress-test-report"
+              includeRootFolder: false
+              archiveType: "zip"
+              archiveFile: "$(System.DefaultWorkingDirectory)/jmeter/stress-test-report.zip"
+            displayName: "Archive Stress Test Report"
+
+          - publish: $(System.DefaultWorkingDirectory)/jmeter
+            displayName: "Publish JMeter Test Report"
+            artifact: drop-jmeter-reports
+
+          - task: CmdLine@2
+            inputs:
+              script: |
+                DEST_DIR=$(System.DefaultWorkingDirectory)/jmeter
+                rm -rf $DEST_DIR
+                rm -rf DEST_DIR
+            displayName: "Remove All Report After Publish"
