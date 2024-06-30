@@ -186,6 +186,7 @@ stages:
                       if [ ! -d "$DIR_LOG" ]; then
                           mkdir -p $DIR_LOG
                       fi
+                      cat /home/udacitytungtt44/app/automation-test.log
                       mv /home/udacitytungtt44/app/automation-test.log $DIR_LOG
                       rm -rf $(Build.BuildId)-uitests.zip
                       echo "Completed Selenium Tests. Check selenium.log for results."
