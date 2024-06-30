@@ -159,7 +159,6 @@ stages:
                     targetType: "inline"
                     script: |
                       #! /bin/bash
-                      sudo apt-get update
                       sudo apt-get upgrade -y
                       sudo apt-get install python3-pip -y
                       sudo pip3 install --upgrade pip
@@ -251,8 +250,14 @@ stages:
                 java --version
                 wget "https://dlcdn.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz"
                 tar zxvf apache-jmeter-5.6.3.tgz
+                mv $(Pipeline.Workspace)/drop-perftests/$(Build.BuildId)-perftests.zip $(System.DefaultWorkingDirectory)
                 unzip -o $(Build.BuildId)-perftests.zip
-                echo $(System.DefaultWorkingDirectory)
                 ls
               workingDirectory: $(System.DefaultWorkingDirectory)
             displayName: "Install JMeter"
+          - task: CmdLine@2
+            inputs:
+              script: |
+                apache-jmeter-5.6.3/bin/jmeter --version
+                ls
+            displayName: "Check JMeter version"
