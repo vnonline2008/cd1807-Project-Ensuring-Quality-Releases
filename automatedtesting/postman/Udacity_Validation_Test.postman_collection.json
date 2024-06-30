@@ -1,0 +1,260 @@
+{
+	"info": {
+		"_postman_id": "a77ef7c5-291a-4667-b32a-4301140b352d",
+		"name": "Udacity Validation Test",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "20160369"
+	},
+	"item": [
+		{
+			"name": "Get Users",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const dataJson = pm.response.json();\r",
+							"pm.test(\"Validate number of User\", () => {\r",
+							"    pm.expect(dataJson.length).to.be.eq(10);\r",
+							"});\r",
+							"pm.test(\"Validate First User\", () => {\r",
+							"    pm.expect(dataJson[0].ID).to.be.eq(1);\r",
+							"    pm.expect(dataJson[0].UserName).to.be.eq(\"User 1\");\r",
+							"    pm.expect(dataJson[0].Password).to.be.eq(\"Password1\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "https://{{domain}}/{{apiPath}}",
+					"protocol": "https",
+					"host": [
+						"{{domain}}"
+					],
+					"path": [
+						"{{apiPath}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create User",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const dataJson = pm.response.json();\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Validate User create successfully\", () => {\r",
+							"    pm.expect(dataJson.ID).to.be.eq(11);\r",
+							"    pm.expect(dataJson.UserName).to.be.eq(\"tungtt44\")\r",
+							"    pm.expect(dataJson.Password).to.be.eq(\"tungtt44\")\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"ID\": 11,\r\n  \"UserName\": \"tungtt44\",\r\n  \"Password\": \"tungtt44\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{domain}}/{{apiPath}}",
+					"protocol": "https",
+					"host": [
+						"{{domain}}"
+					],
+					"path": [
+						"{{apiPath}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete User by Id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"API Response no-content\", () => {\r",
+							"    pm.response.to.not.be.withBody;\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "https://{{domain}}/{{apiPath}}/{{pathVariable}}",
+					"protocol": "https",
+					"host": [
+						"{{domain}}"
+					],
+					"path": [
+						"{{apiPath}}",
+						"{{pathVariable}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get User by Id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const dataJson = pm.response.json();\r",
+							"pm.test(\"Validate get user by Id\", () => {\r",
+							"    pm.expect(dataJson.ID).to.be.eq(1);\r",
+							"    pm.expect(dataJson.UserName).to.be.eq(\"User 1\");\r",
+							"    pm.expect(dataJson.Password).to.be.eq(\"Password1\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "https://{{domain}}/{{apiPath}}/{{pathVariable}}",
+					"protocol": "https",
+					"host": [
+						"{{domain}}"
+					],
+					"path": [
+						"{{apiPath}}",
+						"{{pathVariable}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update User by Id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"const dataJson = pm.response.json();\r",
+							"pm.test(\"Validate User update successfully\", () => {\r",
+							"    pm.expect(dataJson.ID).to.be.eq(2);\r",
+							"    pm.expect(dataJson.UserName).to.be.eq(\"tungtt44\");\r",
+							"    pm.expect(dataJson.Password).to.be.eq(\"tungtt44\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n  \"ID\": 2,\r\n  \"UserName\": \"tungtt44\",\r\n  \"Password\": \"tungtt44\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://{{domain}}/{{apiPath}}/{{pathVariable}}",
+					"protocol": "https",
+					"host": [
+						"{{domain}}"
+					],
+					"path": [
+						"{{apiPath}}",
+						"{{pathVariable}}"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
