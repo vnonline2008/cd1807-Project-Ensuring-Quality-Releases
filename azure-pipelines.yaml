@@ -186,8 +186,10 @@ stages:
                       if [ ! -d "$DIR_LOG" ]; then
                           mkdir -p $DIR_LOG
                       fi
+                      sudo chmod 775 automation-test.log
                       cat /home/udacitytungtt44/app/automation-test.log
                       cp -rf /home/udacitytungtt44/app/automation-test.log $DIR_LOG
+                      sudo chmod 775 $DIR_LOG/automation-test.log
                       rm -rf $(Build.BuildId)-uitests.zip
                       ls
                       echo "Completed Selenium Tests. Check selenium.log for results."
