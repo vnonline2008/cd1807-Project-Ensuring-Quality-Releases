@@ -187,8 +187,9 @@ stages:
                           mkdir -p $DIR_LOG
                       fi
                       cat /home/udacitytungtt44/app/automation-test.log
-                      mv /home/udacitytungtt44/app/automation-test.log $DIR_LOG
+                      cp -rf /home/udacitytungtt44/app/automation-test.log $DIR_LOG
                       rm -rf $(Build.BuildId)-uitests.zip
+                      ls
                       echo "Completed Selenium Tests. Check selenium.log for results."
                   displayName: "Install and Run Selenium"
                 - publish: "$(System.DefaultWorkingDirectory)/automatedtesting/selenium/automation-test.log"
